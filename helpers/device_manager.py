@@ -20,7 +20,7 @@ class DeviceManager:
 
         image = Image.open(io.BytesIO(self.device.screencap()))
         image.save(save_path)
-        return image        
+        return image
 
     def tap(self, x, y):
         self.device.shell(f"input tap {x} {y}")
