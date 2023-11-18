@@ -1,52 +1,17 @@
-#!/usr/bin/env python3
-
-import io
-import subprocess
-from ppadb.client import Client
-from PIL import Image
-import numpy
+from helpers.device_manager import DeviceManager
+from helpers.image_processor import ImageProcessor
+from actions.tap_action import ActionManager
 import time
 
-# Setup adb
+def main():
+    device_manager = DeviceManager()
+    image_processor = ImageProcessor()
 
-adb = Client(host='127.0.0.1', port=5037)
-devices = adb.devices()
+    ActionManager.tap_search_bar(device_manager, image_processor)
+    time.sleep(0.3)
+    DeviceManager.input_text(device_manager, '3*')
 
-if len(devices) == 0:
-    print('no device attached')
-    quit()
+    print('Done')
 
-device = devices[0]
-
-# Finding search bar
-
-image = Image.open(io.BytesIO(device.screencap()))
-
-width, height = image.size
-
-middle_x = width // 2
-
-with open("pixels.txt", "w") as f:
-    for y in range(height):
-        pixel_color = image.getpixel((middle_x, y))
-        f.write(f"{pixel_color}\n")
-
-def find_occurrence(image, middle_x, height, direction):
-    occurrence = None
-    for y in direction(height):
-        pixel_color = image.getpixel((middle_x, y))
-        if pixel_color == (222, 233, 214, 255):
-            if occurrence is None:
-                occurrence = y
-            if abs(occurrence - y) >= 10:
-                break
-    return occurrence
-
-first_occurrence = find_occurrence(image, middle_x, height, range)
-last_occurrence = find_occurrence(image, middle_x, height, lambda x: reversed(range(x)))
-
-middle_y = (first_occurrence + last_occurrence) // 2
-
-device.shell(f"input tap {middle_x} {middle_y}")
-
-device.shell("input text '!traded&1*,2*'")
+if __name__ == "__main__":
+    main()
